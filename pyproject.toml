@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "poetry-django"
+version = "0.1.0"
+description = ""
+authors = ["Atsuo Ishimoto <atsuoishimoto@users.noreply.github.com>"]
+readme = "README.md"
+packages = [
+  { include = "*", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Django = "^5.1.1"
+mysqlclient = "^2.2.4"
+python-dotenv = "^1.0.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

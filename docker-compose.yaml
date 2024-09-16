@@ -1,0 +1,45 @@
+version: "3.9"
+volumes:
+  mysql_vol:
+
+services:
+  db:
+    image: mysql:8.0.11
+    environment:
+      TZ: UTC
+      MYSQL_DATABASE: app1
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - mysql_vol:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    cap_add:
+      - SYS_NICE  
+  webapp:
+    image: webappimage
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: poetrydjango.settings_mysql
+      MYSQL_DATABASE: app1
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_HOST: db
+
+  django-migrate:
+    image: webappimage
+    command: python -m manage migrate
+    profiles:
+      - optional
+    environment:
+      DJANGO_SETTINGS_MODULE: poetrydjango.settings_mysql
+      MYSQL_DATABASE: app1
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_HOST: db
