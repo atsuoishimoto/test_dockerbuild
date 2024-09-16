@@ -9,9 +9,11 @@ WORKDIR /opt/pythonenv/
 ENV PYTHONUNBUFFERED 1
 
 # Setup build environment
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends curl make gcc g++ libc-dev \
-                    pkg-config libmariadb-dev libyaml-dev libffi-dev
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt update && apt-get --no-install-recommends install -y curl make gcc g++ libc-dev \
+    pkg-config libmariadb-dev libyaml-dev libffi-dev
+
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python -
 
 # Setup Poetry
@@ -32,9 +34,9 @@ ARG TARGETARCH
 RUN \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        libmariadb3 libyaml-0-2 libffi8 && \
+    libmariadb3 libyaml-0-2 libffi8 && \
     apt-get purge -y --auto-remove \
-        -o APT::AutoRemove::RecommendsImportant=false && \
+    -o APT::AutoRemove::RecommendsImportant=false && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/* /var/tmp/* /root/.cache/*
 
