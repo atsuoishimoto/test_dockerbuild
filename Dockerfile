@@ -6,24 +6,22 @@ RUN mkdir -p /opt/pythonenv/
 
 WORKDIR /opt/pythonenv/
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED 5
 
 # Setup build environment
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt update && apt-get --no-install-recommends install -y curl make gcc g++ libc-dev \
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends curl make gcc g++ libc-dev \
     pkg-config libmariadb-dev libyaml-dev libffi-dev
 
-RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python -
-
 # Setup Poetry
-RUN ln -s /opt/poetry/bin/poetry /usr/local/bin/poetry
+ARG PIP_CACHE_DIR=/var/pip/cache
+RUN --mount=type=cache,target=${PIP_CACHE_DIR} pip install poetry -v
 RUN poetry config virtualenvs.in-project true
 
 # Build packages
 COPY pyproject.toml /opt/pythonenv/
 COPY poetry.lock /opt/pythonenv/
-RUN poetry install --no-root --only main
+RUN --mount=type=cache,target=${PIP_CACHE_DIR} poetry install --no-root --only main
 
 
 #--------------------------------------------------------------
