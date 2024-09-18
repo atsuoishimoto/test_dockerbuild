@@ -3,6 +3,7 @@ name: Build Docker Image
 on:
   workflow_dispatch:
 
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,4 +13,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Docker image
-        run: docker build -t myimage:latest .
+        run: docker-compose run --build testenv pytest
