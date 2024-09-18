@@ -52,11 +52,8 @@ RUN groupadd -g 999 appuser && \
 
 WORKDIR /usr/src/app
 RUN chown appuser.appuser .
-COPY --chown=appuser . /usr/src/app
 
 COPY --from=build --chown=appuser /opt/pythonenv/.venv /opt/pythonenv/.venv
-
-
 
 
 #--------------------------------------------------------------
@@ -79,6 +76,8 @@ RUN --mount=type=cache,target=${PIP_CACHE_DIR} \
 
 ENV PATH="/opt/pythonenv/.venv/bin:${PATH}"
 ENV PYTHONPATH=/usr/src/app/src
+
+COPY --chown=appuser . /usr/src/app
 WORKDIR /usr/src/app
 CMD ["/bin/bash"]
 
@@ -92,6 +91,7 @@ ENV PYTHONUNBUFFERED 1
 ENV PATH="/opt/pythonenv/.venv/bin:${PATH}"
 ENV PYTHONPATH=/usr/src/app/src
 
+COPY --chown=appuser . /usr/src/app
 RUN python -m manage collectstatic --noinput --settings=poetrydjango.settings
 
 CMD ["python", "-m", "manage", "runserver", "0.0.0.0:8000"]
