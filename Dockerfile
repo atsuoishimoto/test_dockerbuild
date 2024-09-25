@@ -60,12 +60,14 @@ with connection.cursor() as cursor:
 EOF
 
 RUN cat <<EOF > wait_mysql.sh
-#!/bin/sh
+#!/bin/bash
 while ! python -m manage shell < /opt/utils/wait_mysql.py > /dev/null 2>&1; do
   echo waiting db
   sleep 1
 done
+/bin/sh -c "\$*"
 EOF
+
 RUN chmod +x wait_mysql.sh
 
 
@@ -98,9 +100,8 @@ ENV PYTHONPATH=/usr/src/app/src
 
 COPY --chown=appuser . /usr/src/app
 WORKDIR /usr/src/app
-#CMD /opt/utils/wait_mysql.sh && /bin/bash
 
-CMD /opt/utils/wait_mysql.sh && /bin/bash
+CMD ["/opt/utils/wait_mysql.sh && /bin/bash"]
 
 #--------------------------------------------------------------
 FROM runtime_base AS runtime

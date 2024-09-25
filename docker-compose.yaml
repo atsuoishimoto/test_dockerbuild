@@ -1,3 +1,5 @@
+name: poetry-django-test
+
 volumes:
   mysql_vol:
 
@@ -51,7 +53,8 @@ services:
       dockerfile: Dockerfile
       target: dev
 
-    command: /bin/sh -c "/opt/utils/wait_mysql.sh && /bin/bash"
+    entrypoint: ["/opt/utils/wait_mysql.sh"]
+    command: ["bash"]
 
     depends_on:
       - db
