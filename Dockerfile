@@ -29,7 +29,7 @@ RUN --mount=type=cache,target=${PIP_CACHE_DIR} \
 
 
 #--------------------------------------------------------------
-FROM $BASEIMAGE as runtime_base
+FROM $BASEIMAGE AS runtime_base
 
 ARG TARGETARCH
 
@@ -50,6 +50,25 @@ RUN groupadd -g 999 appuser && \
     useradd -r -u 999 -g appuser appuser && \
     chown -R appuser:appuser /usr/src/app /log
 
+
+WORKDIR /opt/utils
+RUN cat <<EOF > wait_mysql.py
+from django.db import connection
+with connection.cursor() as cursor:
+    cursor.execute("select 999")
+    print(cursor.fetchone())
+EOF
+
+RUN cat <<EOF > wait_mysql.sh
+#!/bin/sh
+while ! python -m manage shell < /opt/utils/wait_mysql.py > /dev/null 2>&1; do
+  echo waiting db
+  sleep 1
+done
+EOF
+RUN chmod +x wait_mysql.sh
+
+
 WORKDIR /usr/src/app
 RUN chown appuser.appuser .
 
@@ -57,7 +76,7 @@ COPY --from=build --chown=appuser /opt/pythonenv/.venv /opt/pythonenv/.venv
 
 
 #--------------------------------------------------------------
-FROM runtime_base as dev
+FROM runtime_base AS dev
 
 # Setup Poetry
 ENV PIP_CACHE_DIR=/var/pip/cache
@@ -79,15 +98,16 @@ ENV PYTHONPATH=/usr/src/app/src
 
 COPY --chown=appuser . /usr/src/app
 WORKDIR /usr/src/app
-CMD ["/bin/bash"]
+#CMD /opt/utils/wait_mysql.sh && /bin/bash
 
+CMD /opt/utils/wait_mysql.sh && /bin/bash
 
 #--------------------------------------------------------------
-FROM runtime_base as runtime
+FROM runtime_base AS runtime
 
 USER appuser
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 ENV PATH="/opt/pythonenv/.venv/bin:${PATH}"
 ENV PYTHONPATH=/usr/src/app/src
 

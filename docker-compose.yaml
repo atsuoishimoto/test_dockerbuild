@@ -1,4 +1,3 @@
-version: "3.9"
 volumes:
   mysql_vol:
 
@@ -16,12 +15,12 @@ services:
     volumes:
       - mysql_vol:/var/lib/mysql
     restart: always
-    healthcheck:
-      test: ["CMD", 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'root', '-p$$MYSQL_ROOT_PASSWORD' ]
-      start_period: 3s
-      interval: 3s
-      timeout: 5s
-      retries: 99
+#    healthcheck:
+#      test: ["CMD", 'mysqladmin', 'ping', '-h', '127.0.0.1', '-u', 'root', '-p$$MYSQL_ROOT_PASSWORD' ]
+#      start_period: 3s
+#      interval: 3s
+#      timeout: 5s
+#      retries: 99
 
   webapp:
     image: webappimage
@@ -32,13 +31,13 @@ services:
     restart: always
 
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+#        condition: service_healthy
 
     ports:
       - "8000:8000"
 
-    command: python -m manage runserver 0.0.0.0:8000
+    command: /bin/sh -c "/opt/utils/wait_mysql.sh && python -m manage runserver 0.0.0.0:8000"
     environment:
       DJANGO_SETTINGS_MODULE: poetrydjango.settings_mysql
       MYSQL_DATABASE: app1
@@ -52,10 +51,11 @@ services:
       dockerfile: Dockerfile
       target: dev
 
-    command: /bin/bash
+    command: /bin/sh -c "/opt/utils/wait_mysql.sh && /bin/bash"
+
     depends_on:
-      db:
-        condition: service_healthy
+      - db
+#        condition: service_healthy
     profiles:
       - optional
     environment:
@@ -64,19 +64,3 @@ services:
       MYSQL_USER: root
       MYSQL_PASSWORD: admin
       MYSQL_HOST: db
-
-  migrate:
-    image: webappimage
-    command: python -m manage migrate
-    depends_on:
-      db:
-        condition: service_healthy
-    profiles:
-      - optional
-    environment:
-      DJANGO_SETTINGS_MODULE: poetrydjango.settings_mysql
-      MYSQL_DATABASE: app1
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
-      MYSQL_HOST: db
-
