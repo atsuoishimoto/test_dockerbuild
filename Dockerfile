@@ -65,7 +65,6 @@ while ! python -m manage shell < /opt/utils/wait_mysql.py > /dev/null 2>&1; do
   echo waiting db
   sleep 1
 done
-/bin/sh -c "\$*"
 EOF
 
 RUN chmod +x wait_mysql.sh
